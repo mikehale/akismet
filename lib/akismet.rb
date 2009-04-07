@@ -11,7 +11,6 @@ class Akismet
 
   def verify_key
     response = Net::HTTP.start('rest.akismet.com', 80) do |http|
-      # http.instance_eval{@socket = MethodSpy.new(@socket)}
       http.post('/1.1/verify-key', post_data(:key => @key, :blog => @url), {'User-Agent' => USER_AGENT})
     end
 
@@ -23,11 +22,27 @@ class Akismet
     end
   end
   
+  def submit_spam(args)
+    call_akismet('submit-spam', args)
+  end
+  
+  def submit_ham(args)
+    call_akismet('submit-ham', args)
+  end
+  
   def spam?(args)
+    call_akismet('comment-check', args)
+  end
+  
+  def ham?(args)
+    !spam?(args)
+  end
+
+  def call_akismet(method, args)
     args.update(:blog => @url)
 
     response = Net::HTTP.start("#{@key}.rest.akismet.com", 80) do |http|
-      http.post("/1.1/comment_check", post_data(args), {'User-Agent' => USER_AGENT})
+      http.post("/1.1/#{method}", post_data(args), {'User-Agent' => USER_AGENT})
     end
     
     case response.body
@@ -38,10 +53,6 @@ class Akismet
     end
   end
   
-  def ham?(args)
-    !spam?(args)
-  end
-
   def post_data(hash)
     hash.inject([]) do |memo, hash|
       k, v = hash

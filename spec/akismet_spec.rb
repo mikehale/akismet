@@ -21,7 +21,7 @@ describe "Akismet" do
       spam = env["rack.input"].include?('viagra')
       [200, {}, [spam ? "true" : "false"]]
     end
-    map Rack::URLMap.new("http://thekey.rest.akismet.com/" => app)
+    map Rack::URLMap.new("http://thekey.rest.akismet.com/1.1/comment-check" => app)
   end
   
   it "should verify the key" do
@@ -50,5 +50,28 @@ describe "Akismet" do
 
   it "should detect ham" do
     @akismet.ham?(params.update(:comment_content => "not spam")).should == true
+  end
+  
+  it "should submit spam" do
+    map Rack::URLMap.new("http://thekey.rest.akismet.com/1.1/submit-spam" => lambda { |env| [200, {}, "true"]})
+    @akismet.submit_spam(params.update(:comment_content => "this-is-spam"))
+    request.script_name.should == "/1.1/submit-spam"
+    
+    request.env.has_key?('HTTP_USER_AGENT').should == true
+    request.body.should include("blog=http://example.com")
+    request.body.should include("user_ip=1.2.3.4")
+    request.body.should include("referrer=http://othersite.com")
+    request.body.should include("permalink=http://example.com/post")
+    request.body.should include("comment_type=comment")
+    request.body.should include("comment_author=joe%20smith")
+    request.body.should include("comment_author_email=joe@smith.com")
+    request.body.should include("comment_author_url=blog.smith.com")
+    request.body.should include("comment_content=this-is-spam")
+  end
+  
+  it "should submit ham" do
+    map Rack::URLMap.new("http://thekey.rest.akismet.com/1.1/submit-ham" => lambda { |env| [200, {}, "true"]})
+    @akismet.submit_ham(params.update(:comment_content => "this-is-ham"))
+    request.script_name.should == "/1.1/submit-ham"
   end
 end
