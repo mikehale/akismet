@@ -11,7 +11,12 @@ class Akismet
     @url = url
   end
 
-  def verify_key
+  def verify?
+    @verified = do_verify unless @verified
+    @verified
+  end
+  
+  def do_verify
     response = Net::HTTP.start('rest.akismet.com', 80) do |http|
       http.post('/1.1/verify-key', post_data(:key => @key, :blog => @url), {'User-Agent' => USER_AGENT})
     end
