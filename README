@@ -1,9 +1,8 @@
-akismet=======
-Description goes here.
+Akismet
+=======
+Ruby Library for talking to the akismet spam service. See http://akismet.com/development/api/ for detailed api information.
 
 COPYRIGHT
 =========
 
 Copyright (c) 2008 Michael Hale. See LICENSE for details.
-
-This code is derived from the work done by David Czarnecki
