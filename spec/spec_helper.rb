@@ -1,7 +1,7 @@
 require 'spec'
 require 'rr'
 require 'rack/urlmap'
-require File.dirname(__FILE__) + '/http_shim'
+require File.dirname(__FILE__) + '/spec_http'
 require 'ruby-debug'
 
 class MethodSpy
