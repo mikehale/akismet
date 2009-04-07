@@ -34,6 +34,12 @@ describe "Akismet" do
     response.status.should == 200
   end
   
+  it "should not verify an invalid key" do
+    map Rack::URLMap.new("http://rest.akismet.com/" => lambda { |env| [200, {'x-akismet-debug-help' => 'sorry!'}, ["invalid"]]})    
+    lambda {@akismet.verify_key}.should raise_error Akismet::VerifyException
+    response['x-akismet-debug-help'].should == 'sorry!'
+  end
+  
   it "should detect spam" do
     @akismet.spam?(params.update(:comment_content => "viagra-test-123")).should == true
     request.env.has_key?('HTTP_USER_AGENT').should == true
