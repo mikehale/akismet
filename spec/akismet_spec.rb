@@ -29,14 +29,14 @@ describe "Akismet" do
     
     @akismet.verify_key.should == true
     request.post?.should == true
-    request.env['HTTP_USER_AGENT'].should == "Akismet-rb/1.0 | Akismet/1.11"
+    request.env['HTTP_USER_AGENT'].should match(/Akismet-rb\/\d\.\d\.\d/)
     request.body.should include('http://example.com')
     response.status.should == 200
   end
   
   it "should not verify an invalid key" do
     map Rack::URLMap.new("http://rest.akismet.com/" => lambda { |env| [200, {'x-akismet-debug-help' => 'sorry!'}, ["invalid"]]})    
-    lambda {@akismet.verify_key}.should raise_error Akismet::VerifyException
+    lambda {@akismet.verify_key}.should raise_error(Akismet::VerifyException)
     response['x-akismet-debug-help'].should == 'sorry!'
   end
   

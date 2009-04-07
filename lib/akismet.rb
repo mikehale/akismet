@@ -2,7 +2,9 @@ require 'net/http'
 require 'uri'
 
 class Akismet
-  USER_AGENT = "Akismet-rb/1.0 | Akismet/1.11"
+  version = YAML.load_file(File.join(File.dirname(__FILE__), '..', 'VERSION.yml'))
+  version = "#{version[:major]}.#{version[:minor]}.#{version[:patch]}"
+  USER_AGENT = "Akismet-rb/#{version} | Akismet/1.11"
 
   def initialize(key, url)
     @key = key
