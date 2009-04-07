@@ -16,12 +16,29 @@ class Akismet
                 {'User-Agent' => USER_AGENT})
     end
 
-    if response.body == "invalid"
+    case response.body
+    when "invalid"
       raise Akismet::VerifyException, response.to_hash["x-akismet-debug-help"], caller
+    when "valid"
+      true
     end
-    true
+  end
+  
+  def spam?(args)
+    response = Net::HTTP.start("#{@key}.rest.akismet.com", 80) do |http|
+      http.post("/1.1/comment_check", "blog=#{@url}", {'User-Agent' => USER_AGENT})
+    end
+    case response.body
+    when "true"
+      true
+    when "false"
+      false
+    end
   end
 
-  class VerifyException < Exception
+  def ham?(args)
+    !spam?(args)
   end
+
+  class VerifyException < Exception; end
 end
