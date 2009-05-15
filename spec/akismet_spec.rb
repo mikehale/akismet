@@ -61,6 +61,10 @@ describe "Akismet" do
     request.body.should include("comment_author_url=blog.smith.com")
     request.body.should include("comment_content=viagra-test-123")
   end
+  
+  it "should handle nil values" do
+    lambda {@akismet.spam?(params.update(:referrer => nil))}.should_not raise_error
+  end
 
   it "should detect ham" do
     @akismet.ham?(params.update(:comment_content => "not spam")).should == true

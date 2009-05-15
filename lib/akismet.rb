@@ -63,6 +63,7 @@ class Akismet
   def post_data(hash)
     hash.inject([]) do |memo, hash|
       k, v = hash
+      v ||= ""
       memo << "#{k}=#{URI.escape(v)}"
     end.join('&')
   end
