@@ -44,7 +44,7 @@ describe "Akismet" do
   
   it "should not verify an invalid key" do
     map Rack::URLMap.new("http://rest.akismet.com/" => lambda { |env| [200, {'x-akismet-debug-help' => 'sorry!'}, ["invalid"]]})    
-    lambda {@akismet.verify?}.should raise_error(Akismet::VerifyException)
+    lambda {@akismet.verify?}.should raise_error(Akismet::VerifyError)
     response['x-akismet-debug-help'].should == 'sorry!'
   end
   
@@ -91,5 +91,20 @@ describe "Akismet" do
     map Rack::URLMap.new("http://thekey.rest.akismet.com/1.1/submit-ham" => lambda { |env| [200, {}, "true"]})
     @akismet.submit_ham(params.update(:comment_content => "this-is-ham"))
     request.script_name.should == "/1.1/submit-ham"
+  end
+  
+  describe "verify?" do
+    it "should handle a SocketError" do
+      map Rack::URLMap.new("http://rest.akismet.com/" => lambda { |env| raise SocketError })
+      mock.proxy(Net::HTTP).start(anything, numeric)
+      lambda {@akismet.verify?}.should raise_error(Akismet::VerifyError)
+    end
+  end
+
+  describe "call_akismet" do
+    it "should handle a SocketError" do
+      map Rack::URLMap.new("http://thekey.rest.akismet.com/1.1/comment-check" => lambda { |env| raise SocketError })
+      lambda { @akismet.ham?(params.update(:comment_content => "not spam"))}.should raise_error(Akismet::CheckError)
+    end
   end
 end

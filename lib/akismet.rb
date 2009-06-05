@@ -23,10 +23,12 @@ class Akismet
 
     case response.body
     when "invalid"
-      raise Akismet::VerifyException, response.to_hash["x-akismet-debug-help"], caller
+      raise Akismet::VerifyError, response.to_hash["x-akismet-debug-help"], caller
     when "valid"
       true
     end
+  rescue SocketError => e
+    raise Akismet::VerifyError, e, caller
   end
   
   def submit_spam(args)
@@ -58,6 +60,8 @@ class Akismet
     when "false"
       false
     end
+  rescue SocketError => e
+    raise Akismet::CheckError, e, caller
   end
   
   def post_data(hash)
@@ -68,5 +72,6 @@ class Akismet
     end.join('&')
   end
 
-  class VerifyException < Exception; end
+  class VerifyError < StandardError; end
+  class CheckError < StandardError; end
 end
